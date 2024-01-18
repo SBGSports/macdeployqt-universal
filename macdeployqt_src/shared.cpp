@@ -64,6 +64,30 @@ bool deployFramework = false;
 using std::cout;
 using std::endl;
 
+namespace LibraryInfo {
+QString location(QLibraryInfo::LibraryLocation loc)
+{
+    switch(loc)
+    {
+    case QLibraryInfo::PrefixPath: return customQtPath;
+    case QLibraryInfo::DocumentationPath: return customQtPath + "/doc";
+    case QLibraryInfo::HeadersPath: return customQtPath + "/include";
+    case QLibraryInfo::LibrariesPath: return customQtPath + "/lib";
+    case QLibraryInfo::LibraryExecutablesPath: return customQtPath + "/libexec";
+    case QLibraryInfo::BinariesPath: return customQtPath + "/bin";
+    case QLibraryInfo::PluginsPath: return customQtPath + "/plugins";
+    case QLibraryInfo::ImportsPath: return customQtPath + "/imports";
+    case QLibraryInfo::Qml2ImportsPath: return customQtPath + "/qml";
+    case QLibraryInfo::ArchDataPath: return customQtPath;
+    case QLibraryInfo::DataPath: return customQtPath;
+    case QLibraryInfo::TranslationsPath: return customQtPath + "/translations";
+    case QLibraryInfo::ExamplesPath: return customQtPath + "examples";
+    case QLibraryInfo::TestsPath: return customQtPath + "/tests";
+    case QLibraryInfo::SettingsPath: return "/Library/Preferences/Qt";
+    }
+}
+};
+
 bool operator==(const FrameworkInfo &a, const FrameworkInfo &b)
 {
     return ((a.frameworkPath == b.frameworkPath) && (a.binaryPath == b.binaryPath));
@@ -1034,8 +1058,9 @@ DeploymentInfo deployQtFrameworks(const QString &appBundlePath, const QStringLis
    QStringList allBinaryPaths = QStringList() << applicationBundle.binaryPath << applicationBundle.libraryPaths
                                                  << additionalExecutables;
    QSet<QString> allLibraryPaths = getBinaryRPaths(applicationBundle.binaryPath, true);
-   allLibraryPaths.insert(QLibraryInfo::location(QLibraryInfo::LibrariesPath));
+   allLibraryPaths.insert(LibraryInfo::location(QLibraryInfo::LibrariesPath));
    QList<FrameworkInfo> frameworks = getQtFrameworksForPaths(allBinaryPaths, appBundlePath, allLibraryPaths, useDebugLibs);
+
    if (frameworks.isEmpty() && !alwaysOwerwriteEnabled) {
         LogWarning();
         LogWarning() << "Could not find any external Qt frameworks to deploy in" << appBundlePath;
@@ -1257,11 +1282,16 @@ bool deployQmlImports(const QString &appBundlePath, DeploymentInfo deploymentInf
     LogNormal() << "QML module search path(s) is" << qmlImportPaths;
 
     // Use qmlimportscanner from QLibraryInfo::BinariesPath
-    QString qmlImportScannerPath = QDir::cleanPath(QLibraryInfo::location(QLibraryInfo::BinariesPath) + "/qmlimportscanner");
+    QString qmlImportScannerPath = QDir::cleanPath(LibraryInfo::location(QLibraryInfo::BinariesPath) + "/qmlimportscanner");
+    qDebug() << "Looking for qmlimportscanner in: " << qmlImportScannerPath;
+
 
     // Fallback: Look relative to the macdeployqt binary
-    if (!QFile(qmlImportScannerPath).exists())
+    if (!QFile(qmlImportScannerPath).exists()) {
         qmlImportScannerPath = QCoreApplication::applicationDirPath() + "/qmlimportscanner";
+        qInfo() << "Failed, looking for qmlimportscanner in macdeployqt dir path" << qmlImportScannerPath;
+    }
+
 
     // Verify that we found a qmlimportscanner binary
     if (!QFile(qmlImportScannerPath).exists()) {
@@ -1279,7 +1309,7 @@ bool deployQmlImports(const QString &appBundlePath, DeploymentInfo deploymentInf
     }
     for (const QString &importPath : qmlImportPaths)
         argumentList << "-importPath" << importPath;
-    QString qmlImportsPath = QLibraryInfo::location(QLibraryInfo::Qml2ImportsPath);
+    QString qmlImportsPath = LibraryInfo::location(QLibraryInfo::Qml2ImportsPath);
     argumentList.append( "-importPath");
     argumentList.append(qmlImportsPath);
 

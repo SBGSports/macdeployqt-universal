@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         appBundlePath = QString::fromLocal8Bit(argv[1]);
 
     if (argc < 2 || appBundlePath.startsWith("-")) {
-        qDebug() << "Usage: macdeployqt app-bundle [options]";
+        qDebug() << "Usage: custom macdeployqt app-bundle [options]";
         qDebug() << "";
         qDebug() << "Options:";
         qDebug() << "   -verbose=<0-3>                : 0 = no output, 1 = error/warning (default), 2 = normal, 3 = debug";
@@ -60,6 +60,7 @@ int main(int argc, char **argv)
         qDebug() << "   -appstore-compliant           : Skip deployment of components that use private API";
         qDebug() << "   -libpath=<path>               : Add the given path to the library search path";
         qDebug() << "   -fs=<filesystem>              : Set the filesystem used for the .dmg disk image (defaults to HFS+)";
+        qDebug() << "   -qtdir=<path>                 : Path for your custom Qt where default macdeployqt is invalid";
         qDebug() << "";
         qDebug() << "macdeployqt takes an application bundle as input and makes it";
         qDebug() << "self-contained by copying in the Qt frameworks and plugins that";
@@ -77,6 +78,10 @@ int main(int argc, char **argv)
         qDebug() << "";
         qDebug() << "See the \"Deploying Applications on OS X\" topic in the";
         qDebug() << "documentation for more information about deployment on OS X.";
+        qDebug() << "";
+        qDebug() << "Note:";
+        qDebug() << "Tested only for Focus.app -verbose=1 -qtdir=/.../qt-arm -qmldir=/.../SBGSource";
+        qDebug() << "";
 
         return 1;
     }
